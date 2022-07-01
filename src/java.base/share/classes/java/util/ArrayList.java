@@ -130,6 +130,11 @@ public class ArrayList<E> extends AbstractList<E>
     private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
     /**
+     * 元素数组
+     *
+     * 当添加新的元素时，如果该数组不够，就会创建新数组，并将原数组的元素拷贝到新数组。
+     * 之后，将该变量指向新数组。
+     *
      * The array buffer into which the elements of the ArrayList are stored.
      * The capacity of the ArrayList is the length of this array buffer. Any
      * empty ArrayList with elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA
@@ -142,8 +147,9 @@ public class ArrayList<E> extends AbstractList<E>
      *
      * @serial
      */
-    private int size;
+    private int size;// 表示已使用的数组大小
 
+    // ArrayList总共有3种构造方法
     /**
      * Constructs an empty list with the specified initial capacity.
      *
@@ -152,10 +158,13 @@ public class ArrayList<E> extends AbstractList<E>
      *         is negative
      */
     public ArrayList(int initialCapacity) {
+        // 初始化容量大于0，创建Object数组
         if (initialCapacity > 0) {
             this.elementData = new Object[initialCapacity];
+            // 初始化容量等于0，使用EMPTY_ELEMENTDATA对象
         } else if (initialCapacity == 0) {
             this.elementData = EMPTY_ELEMENTDATA;
+            // 初始化容量小于0，抛出 IllegalArgumentException 异常
         } else {
             throw new IllegalArgumentException("Illegal Capacity: "+
                                                initialCapacity);
@@ -163,6 +172,8 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
+     * 此处我们可以看到，其实默认情况下，无参构造的elementData是个空数组，也就是说仅仅只是创建一个
+     * ArrayList对象并不占用内存空间，只有在初次往里面加入元素的时候，才会初始化为10
      * Constructs an empty list with an initial capacity of ten.
      */
     public ArrayList() {
@@ -170,6 +181,8 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
+     * 使用传入的c集合作为elementData，
+     *
      * Constructs a list containing the elements of the specified
      * collection, in the order they are returned by the collection's
      * iterator.
@@ -178,14 +191,19 @@ public class ArrayList<E> extends AbstractList<E>
      * @throws NullPointerException if the specified collection is null
      */
     public ArrayList(Collection<? extends E> c) {
+        // 首先，把c集合转化成为object[]
         Object[] a = c.toArray();
+        // 如果数组的大小不为0，即大于0
         if ((size = a.length) != 0) {
+            // 如果c集合刚好就是ArrayList，就直接把c集合的值赋值给elementData
             if (c.getClass() == ArrayList.class) {
                 elementData = a;
             } else {
+                // 如果不是ArrayList类型的，就会创建新的Object[]，并赋值给elementData
                 elementData = Arrays.copyOf(a, size, Object[].class);
             }
         } else {
+            // 如果数组大小等于0，就用EMPTY_ELEMENTDATA来替换
             // replace with empty array.
             elementData = EMPTY_ELEMENTDATA;
         }
@@ -463,9 +481,9 @@ public class ArrayList<E> extends AbstractList<E>
      * @return {@code true} (as specified by {@link Collection#add})
      */
     public boolean add(E e) {
-        modCount++;
-        add(e, elementData, size);
-        return true;
+        modCount++; //增加数组修改次数
+        add(e, elementData, size); // 添加元素
+        return true; // 返回添加成功
     }
 
     /**
