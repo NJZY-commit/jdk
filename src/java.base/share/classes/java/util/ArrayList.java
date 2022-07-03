@@ -666,22 +666,29 @@ public class ArrayList<E> extends AbstractList<E>
      * @return {@code true} if this list contained the specified element
      */
     public boolean remove(Object o) {
-        final Object[] es = elementData;
-        final int size = this.size;
-        int i = 0;
+        final Object[] es = elementData; // 定义一个Object类型的数组常量
+        final int size = this.size; // 定义一个常量size
+        int i = 0; // 初始化数组下标为0
         found: {
+            // 如果参数o是null
             if (o == null) {
+                // 删除数组内值为null的元素
                 for (; i < size; i++)
                     if (es[i] == null)
                         break found;
             } else {
+                // 如果参数o不为null，遍历数组
+                // 如果在数组中找到了这个元素，就结束，进入删除步骤
                 for (; i < size; i++)
                     if (o.equals(es[i]))
                         break found;
             }
+            // 如果数组内没有找到相对应的元素，就直接返回false
             return false;
         }
+        // 快速删除的逻辑
         fastRemove(es, i);
+        // 删除后返回true
         return true;
     }
 
@@ -802,17 +809,22 @@ public class ArrayList<E> extends AbstractList<E>
      *          toIndex < fromIndex})
      */
     protected void removeRange(int fromIndex, int toIndex) {
+        // 判断fromIndex(起始指标)是否大于toIndex(结束指标)，如果是就抛出越界异常
         if (fromIndex > toIndex) {
             throw new IndexOutOfBoundsException(
                     outOfBoundsMsg(fromIndex, toIndex));
         }
+        // 修改次数+1
         modCount++;
+        // 多个删除的核心
         shiftTailOverGap(elementData, fromIndex, toIndex);
     }
 
     /** Erases the gap from lo to hi, by sliding down following elements. */
     private void shiftTailOverGap(Object[] es, int lo, int hi) {
+        // 把数组内的元素从hi开始向后的size-hi个元素复制到下标为lo的位置上
         System.arraycopy(es, hi, es, lo, size - hi);
+        // 随后，把[size - hi + lo, size)的元素都用null来覆盖掉
         for (int to = size, i = (size -= hi - lo); i < to; i++)
             es[i] = null;
     }
