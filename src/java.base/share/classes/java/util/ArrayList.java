@@ -896,21 +896,30 @@ public class ArrayList<E> extends AbstractList<E>
 
     boolean batchRemove(Collection<?> c, boolean complement,
                         final int from, final int end) {
-        Objects.requireNonNull(c);
-        final Object[] es = elementData;
-        int r;
+        Objects.requireNonNull(c); // 检查c是不是空的，要求不能为空
+        final Object[] es = elementData; // 创建一个类型为Object[]的常量es
+        int r; //指针r
         // Optimize for initial run of survivors
+        // 循环的逻辑：此处不加循环条件，会一直循环下去，如果c集合中包含es[r]的元素就结束循环，相反如果c集合中不包含es中的任意一个元素就直接返回结果false
         for (r = from;; r++) {
             if (r == end)
                 return false;
             if (c.contains(es[r]) != complement)
                 break;
         }
+        // 如果走到这里说明是有相同的元素的
+        // 这里需要注意，w赋的值是r，之后r会++
         int w = r++;
+
+        // 异常代码块内的代码逻辑：
+        //  循环的初始条件是：创建一个Object类型的对象e
+        //  循环的结束条件是：当 指针没有指向最后
+        //  循环的动作：++
         try {
             for (Object e; r < end; r++)
+                // 此处有两个操作：第一个操作是把es[r]赋值给了e；接着第二个操作是判断c集合中是否包含e这个元素，如果包含就接着下一步否则就进入下一个循环
                 if (c.contains(e = es[r]) == complement)
-                    es[w++] = e;
+                    es[w++] = e;// 把e对应的值赋值到w的后一位
         } catch (Throwable ex) {
             // Preserve behavioral compatibility with AbstractCollection,
             // even if c.contains() throws.
@@ -918,10 +927,10 @@ public class ArrayList<E> extends AbstractList<E>
             w += end - r;
             throw ex;
         } finally {
-            modCount += end - w;
-            shiftTailOverGap(es, w, end);
+            modCount += end - w; // 修改改动次数
+            shiftTailOverGap(es, w, end); // 把es[w++]后面的值都给去除
         }
-        return true;
+        return true; // 返回结果，表示删除完毕
     }
 
     /**
