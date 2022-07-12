@@ -310,10 +310,13 @@ public class ArrayList<E> extends AbstractList<E>
      * @return {@code true} if this list contains the specified element
      */
     public boolean contains(Object o) {
-        return indexOf(o) >= 0;
+        return indexOf(o) >= 0; // 底层调用的是indexof，如果返回值不是-1，就说明这个数组内是有这个元素的
     }
 
     /**
+     *
+     * 查找单个元素
+     *
      * Returns the index of the first occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
      * More formally, returns the lowest index {@code i} such that
@@ -321,28 +324,34 @@ public class ArrayList<E> extends AbstractList<E>
      * or -1 if there is no such index.
      */
     public int indexOf(Object o) {
-        return indexOfRange(o, 0, size);
+        return indexOfRange(o, 0, size); // o--代表你要查找的元素值；0--起始的位置；size--表示末尾
     }
 
     int indexOfRange(Object o, int start, int end) {
-        Object[] es = elementData;
-        if (o == null) {
+        Object[] es = elementData; // 新建一个数组，里面是你要查找的值的数组
+        if (o == null) { // 判断元素值是否为null
+            //如果是null，就遍历数组，如果找到元素为null的，就返回下标值
             for (int i = start; i < end; i++) {
                 if (es[i] == null) {
                     return i;
                 }
             }
         } else {
+            // 如果不是null，而是有具体值的
             for (int i = start; i < end; i++) {
+                // 循环遍历数组，比较有没有相等的
                 if (o.equals(es[i])) {
-                    return i;
+                    return i; // 如果有就返回下标
                 }
             }
         }
+        //如果没有找到就返回-1
         return -1;
     }
 
     /**
+     * 查找对应的值的最后出现的下标值
+     *
      * Returns the index of the last occurrence of the specified element
      * in this list, or -1 if this list does not contain the element.
      * More formally, returns the highest index {@code i} such that
@@ -350,24 +359,31 @@ public class ArrayList<E> extends AbstractList<E>
      * or -1 if there is no such index.
      */
     public int lastIndexOf(Object o) {
-        return lastIndexOfRange(o, 0, size);
+        return lastIndexOfRange(o, 0, size); // 底层调用的是lastIndexOfRange
     }
 
+    // o--表示要找的元素，start--表示起始位置，end--表示结束位置
     int lastIndexOfRange(Object o, int start, int end) {
-        Object[] es = elementData;
-        if (o == null) {
+        Object[] es = elementData; // 新建一个数组
+        if (o == null) { // 如果要找的值是null
+            // 从数组最后一位开始往前遍历数组
             for (int i = end - 1; i >= start; i--) {
+                // 如果遇到null，就返回下标（此时的i的值）
                 if (es[i] == null) {
                     return i;
                 }
             }
         } else {
+            // 如果要找具体的值，也是跟上面一个思路
             for (int i = end - 1; i >= start; i--) {
+                // 如果找到值相同的就返回下标
                 if (o.equals(es[i])) {
                     return i;
                 }
             }
         }
+
+        //如果数组内不存在想找的值，就返回-1
         return -1;
     }
 
@@ -390,6 +406,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
+     * 转化成数组的方法
      * Returns an array containing all of the elements in this list
      * in proper sequence (from first to last element).
      *
@@ -404,10 +421,12 @@ public class ArrayList<E> extends AbstractList<E>
      *         proper sequence
      */
     public Object[] toArray() {
-        return Arrays.copyOf(elementData, size);
+        return Arrays.copyOf(elementData, size); // 底层用了Arrays类中的copyOf方法
     }
 
     /**
+     * 转换指定<T>泛型的数组
+     *
      * Returns an array containing all of the elements in this list in proper
      * sequence (from first to last element); the runtime type of the returned
      * array is that of the specified array.  If the list fits in the
@@ -433,12 +452,16 @@ public class ArrayList<E> extends AbstractList<E>
      */
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
+        // 如果数组小于size大小，就创建一个新的数组返回
         if (a.length < size)
             // Make a new array of a's runtime type, but my contents:
             return (T[]) Arrays.copyOf(elementData, size, a.getClass());
+        // 如果数组大小刚好等于size的大小，就直接调用arraycopy，替换元素
         System.arraycopy(elementData, 0, a, 0, size);
+        // 如果数组的长度大于size的大小，就把下标为size的元素用null顶替
         if (a.length > size)
             a[size] = null;
+        // 把结果返回
         return a;
     }
 
@@ -446,7 +469,7 @@ public class ArrayList<E> extends AbstractList<E>
 
     @SuppressWarnings("unchecked")
     E elementData(int index) {
-        return (E) elementData[index];
+        return (E) elementData[index]; // 返回对应下标的值
     }
 
     @SuppressWarnings("unchecked")
@@ -455,6 +478,8 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
+     *
+     * 获得指定位置的元素
      * Returns the element at the specified position in this list.
      *
      * @param  index index of the element to return
@@ -462,11 +487,14 @@ public class ArrayList<E> extends AbstractList<E>
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
     public E get(int index) {
+        // 检查 index 是否超过了 size
         Objects.checkIndex(index, size);
         return elementData(index);
     }
 
     /**
+     *
+     * 在指定的位置插入元素
      * Replaces the element at the specified position in this list with
      * the specified element.
      *
@@ -476,9 +504,13 @@ public class ArrayList<E> extends AbstractList<E>
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
     public E set(int index, E element) {
+        // 检查index是否超过了size
         Objects.checkIndex(index, size);
+        // 取出原数组中下标index对应的值
         E oldValue = elementData(index);
+        // 把新的值插入进去
         elementData[index] = element;
+        // 返回原原来的值表示插入成功
         return oldValue;
     }
 
@@ -633,22 +665,24 @@ public class ArrayList<E> extends AbstractList<E>
      * {@inheritDoc}
      */
     public int hashCode() {
-        int expectedModCount = modCount;
-        int hash = hashCodeRange(0, size);
-        checkForComodification(expectedModCount);
-        return hash;
+        int expectedModCount = modCount; // 获得当前数组修改的次数
+        int hash = hashCodeRange(0, size); // 计算哈希值的核心
+        checkForComodification(expectedModCount); // 如果修改次数发生改变，就抛出ConcurrentModificationException
+        return hash; // 返回hash值
     }
 
     int hashCodeRange(int from, int to) {
-        final Object[] es = elementData;
-        if (to > es.length) {
-            throw new ConcurrentModificationException();
+        final Object[] es = elementData; // 获取当前的数组
+        if (to > es.length) { // 如果to的值大于数组的长度
+            throw new ConcurrentModificationException(); // 就抛出ConcurrentModificationException
         }
-        int hashCode = 1;
+        int hashCode = 1; // 初始化hashCode为1
+        // 遍历数组
         for (int i = from; i < to; i++) {
-            Object e = es[i];
-            hashCode = 31 * hashCode + (e == null ? 0 : e.hashCode());
+            Object e = es[i]; // 取出当前下标的元素
+            hashCode = 31 * hashCode + (e == null ? 0 : e.hashCode()); // 计算的核心：如果e为null就适用默认值0，否则就调用hashCode()，再加上上一个hashcode值*31
         }
+        // 返回结果
         return hashCode;
     }
 
