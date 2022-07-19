@@ -233,11 +233,13 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
 
     /**
+     * 默认的初始容量
      * The default initial capacity - MUST be a power of two.
      */
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
 
     /**
+     * 最大容量
      * The maximum capacity, used if a higher value is implicitly specified
      * by either of the constructors with arguments.
      * MUST be a power of two <= 1<<30.
@@ -245,6 +247,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int MAXIMUM_CAPACITY = 1 << 30;
 
     /**
+     * 默认的扩容因子是0.75
      * The load factor used when none specified in constructor.
      */
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
@@ -275,15 +278,29 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int MIN_TREEIFY_CAPACITY = 64;
 
     /**
+     * Node数组
      * Basic hash bin node, used for most entries.  (See below for
      * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)
      */
     static class Node<K,V> implements Map.Entry<K,V> {
+        /**
+         * 哈希值
+         */
         final int hash;
+        /**
+         * key
+         */
         final K key;
+        /**
+         * 值
+         */
         V value;
+        /**
+         * 下一个节点的指针
+         */
         Node<K,V> next;
 
+        // 构造方法
         Node(int hash, K key, V value, Node<K,V> next) {
             this.hash = hash;
             this.key = key;
@@ -291,20 +308,22 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             this.next = next;
         }
 
-        public final K getKey()        { return key; }
-        public final V getValue()      { return value; }
-        public final String toString() { return key + "=" + value; }
+        public final K getKey()        { return key; } // 获取key
+        public final V getValue()      { return value; } // 获取VALUE
+        public final String toString() { return key + "=" + value; } // 打印成字符串
 
-        public final int hashCode() {
+        public final int hashCode() { // 计算散列值
             return Objects.hashCode(key) ^ Objects.hashCode(value);
         }
 
+        // 设置新的value
         public final V setValue(V newValue) {
             V oldValue = value;
             value = newValue;
             return oldValue;
         }
 
+        // 比较方法
         public final boolean equals(Object o) {
             if (o == this)
                 return true;
@@ -372,16 +391,21 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 计算阈值的方法
      * Returns a power of two size for the given target capacity.
      */
     static final int tableSizeFor(int cap) {
+        // 将 cap 从最高位（最左边）第一个为 1 开始的位开始，全部设置为 1 。
         int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
+        // 因为 n 已经是 0..01..1 的情况，那么 n + 1 就能满足 cap 的最小 2 的 N 次方
+        // 在 cap 为 0 和 1 的时候，n 会为 -1 ，则此时最小 2 的 N 次方为 2^0 = 1 。
         return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
     }
 
     /* ---------------- Fields -------------- */
 
     /**
+     * 底层是一个Node数组
      * The table, initialized on first use, and resized as
      * necessary. When allocated, length is always a power of two.
      * (We also tolerate length zero in some operations to allow
@@ -390,17 +414,20 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient Node<K,V>[] table;
 
     /**
+     * 使用了entrySet()后得到的set集合
      * Holds cached entrySet(). Note that AbstractMap fields are used
      * for keySet() and values().
      */
     transient Set<Map.Entry<K,V>> entrySet;
 
     /**
+     * 键值对的个数
      * The number of key-value mappings contained in this map.
      */
     transient int size;
 
     /**
+     * hashmap修改的次数
      * The number of times this HashMap has been structurally modified
      * Structural modifications are those that change the number of mappings in
      * the HashMap or otherwise modify its internal structure (e.g.,
@@ -410,6 +437,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient int modCount;
 
     /**
+     * 阈值，当size>threshold时，就会进行扩容
      * The next size value at which to resize (capacity * load factor).
      *
      * @serial
@@ -421,6 +449,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     int threshold;
 
     /**
+     * 扩容因子
      * The load factor for the hash table.
      *
      * @serial
@@ -430,6 +459,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Public operations -------------- */
 
     /**
+     * 有两个参数的构造器
      * Constructs an empty {@code HashMap} with the specified initial
      * capacity and load factor.
      *
@@ -437,25 +467,32 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * To create a {@code HashMap} with an initial capacity that accommodates
      * an expected number of mappings, use {@link #newHashMap(int) newHashMap}.
      *
-     * @param  initialCapacity the initial capacity
-     * @param  loadFactor      the load factor
+     * @param  initialCapacity the initial capacity 初始的容量
+     * @param  loadFactor      the load factor 扩容因子
      * @throws IllegalArgumentException if the initial capacity is negative
      *         or the load factor is nonpositive
      */
     public HashMap(int initialCapacity, float loadFactor) {
+        // 如果初始容量<0，就报出初始容量异常
         if (initialCapacity < 0)
             throw new IllegalArgumentException("Illegal initial capacity: " +
                                                initialCapacity);
+        // 如果初始容量超过最大容量，就把初始容量限制在最大容量内
         if (initialCapacity > MAXIMUM_CAPACITY)
             initialCapacity = MAXIMUM_CAPACITY;
+
+        // 如果加载因子是NaN并且小于等于0，就报出非法加载因子异常
         if (loadFactor <= 0 || Float.isNaN(loadFactor))
             throw new IllegalArgumentException("Illegal load factor: " +
                                                loadFactor);
+        // 给加载因子赋值
         this.loadFactor = loadFactor;
+        // 给阈值赋值
         this.threshold = tableSizeFor(initialCapacity);
     }
 
     /**
+     * 单个参数的构造器，底层是对HashMap(int initialCapacity, float loadFactor)的一层封装
      * Constructs an empty {@code HashMap} with the specified initial
      * capacity and the default load factor (0.75).
      *
@@ -471,6 +508,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 默认的构造方法，给加载因子赋值为0.75
      * Constructs an empty {@code HashMap} with the default initial capacity
      * (16) and the default load factor (0.75).
      */
@@ -488,11 +526,14 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @throws  NullPointerException if the specified map is null
      */
     public HashMap(Map<? extends K, ? extends V> m) {
+        // 设置加载因子
         this.loadFactor = DEFAULT_LOAD_FACTOR;
+        // 批量添加到table中
         putMapEntries(m, false);
     }
 
     /**
+     *
      * Implements Map.putAll and Map constructor.
      *
      * @param m the map
@@ -501,21 +542,27 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
         int s = m.size();
+        // <1>
         if (s > 0) {
+            // 如果 table 为空，说明还没初始化，适合在构造方法的情况
             if (table == null) { // pre-size
+                // 计算需要最小的 tables 大小，这里用了Math的ceil()，是为了方便下面直接取整
                 double dt = Math.ceil(s / (double)loadFactor);
                 int t = ((dt < (double)MAXIMUM_CAPACITY) ?
                          (int)dt : MAXIMUM_CAPACITY);
+                // 如果计算出来的 t 大于阀值，则计算新的阀值
                 if (t > threshold)
                     threshold = tableSizeFor(t);
+                // 如果 table 非空，说明已经初始化，需要不断扩容到阀值超过 s 的数量，避免扩容
             } else {
                 // Because of linked-list bucket constraints, we cannot
                 // expand all at once, but can reduce total resize
                 // effort by repeated doubling now vs later
                 while (s > threshold && table.length < MAXIMUM_CAPACITY)
-                    resize();
+                    resize(); // 扩容
             }
 
+            // <2> 遍历 m 集合，逐个添加到 HashMap 中
             for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
                 K key = e.getKey();
                 V value = e.getValue();
