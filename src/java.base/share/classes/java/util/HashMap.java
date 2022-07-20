@@ -337,6 +337,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Static utilities -------------- */
 
     /**
+     * 哈希函数方法
+     *
      * Computes key.hashCode() and spreads (XORs) higher bits of hash
      * to lower.  Because the table uses power-of-two masking, sets of
      * hashes that vary only in bits above the current mask will
@@ -353,10 +355,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * never be used in index calculations because of table bounds.
      */
     static final int hash(Object key) {
-        int h;
-        return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+        int h; // 新建一个变量h
+        return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16); // 为了高效就有了key.hashCode()，为了离散型就有了^ (h >>> 16)
     }
-
     /**
      * Returns x's Class if it is of the form "class C implements
      * Comparable<C>", else null.
@@ -650,6 +651,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 添加单个元素
      * Associates the specified value with the specified key in this map.
      * If the map previously contained a mapping for the key, the old
      * value is replaced.
@@ -662,59 +664,92 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      *         previously associated {@code null} with {@code key}.)
      */
     public V put(K key, V value) {
+        // 底层封装了一个putVal方法
         return putVal(hash(key), key, value, false, true);
     }
 
     /**
      * Implements Map.put and related methods.
      *
-     * @param hash hash for key
-     * @param key the key
-     * @param value the value to put
+     * @param hash hash for key  key的hash值
+     * @param key the key 键
+     * @param value the value to put 要存放的value
      * @param onlyIfAbsent if true, don't change existing value
      * @param evict if false, the table is in creation mode.
      * @return previous value, or null if none
      */
     final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                    boolean evict) {
-        Node<K,V>[] tab; Node<K,V> p; int n, i;
+        Node<K,V>[] tab; // tables 数组
+        Node<K,V> p; // 对应位置的 Node 节点
+        int n, i; // 数组大小 和 对应的 table 的位置
+
+        // 如果table未初始化，或者容量为0，则进行扩容
         if ((tab = table) == null || (n = tab.length) == 0)
             n = (tab = resize()).length;
-        if ((p = tab[i = (n - 1) & hash]) == null)
+        // 如果对应位置的 Node 节点为空，则直接创建 Node 节点即可。
+        if ((p = tab[i = (n - 1) & hash] /*为了获取对应位置的Node节点*/) == null)
             tab[i] = newNode(hash, key, value, null);
+
+            // <3> 如果对应位置的 Node 节点非空，则可能存在哈希冲突
         else {
-            Node<K,V> e; K k;
-            if (p.hash == hash &&
-                ((k = p.key) == key || (key != null && key.equals(k))))
+            Node<K,V> e; // key 在 HashMap 对应的老节点
+            K k;
+            // <3.1> 如果找到的 p 节点，就是要找的，则则直接使用即可
+            if (p.hash == hash && // 判断 hash 值相等
+                ((k = p.key) == key || (key != null && key.equals(k))))  // 判断 key 真正相等
                 e = p;
+
+                // <3.2> 如果找到的 p 节点，是红黑树 Node 节点，则直接添加到树中
             else if (p instanceof TreeNode)
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+
+                // <3.3> 如果找到的 p 是 Node 节点，则说明是链表，需要遍历查找
             else {
+                // 顺序遍历链表
                 for (int binCount = 0; ; ++binCount) {
+                    // `(e = p.next)`：e 指向下一个节点，因为上面我们已经判断了最开始的 p 节点。
+                    // 如果已经遍历到链表的尾巴，则说明 key 在 HashMap 中不存在，则需要创建
                     if ((e = p.next) == null) {
+                        // 创建新的 Node 节点
                         p.next = newNode(hash, key, value, null);
+                        // 链表的长度如果数量达到 TREEIFY_THRESHOLD（8）时，则进行树化。
                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
                             treeifyBin(tab, hash);
-                        break;
+                        break;  // 结束
                     }
+
+                    // 如果遍历的 e 节点，就是要找的，则则直接使用即可
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k))))
-                        break;
+                        break;// 结束
+
+                    // p 指向下一个节点
                     p = e;
                 }
             }
+
+            // <4.1> 如果找到了对应的节点
             if (e != null) { // existing mapping for key
                 V oldValue = e.value;
+                // 修改节点的 value ，如果允许修改
                 if (!onlyIfAbsent || oldValue == null)
                     e.value = value;
+                // 节点被访问的回调
                 afterNodeAccess(e);
+                // 返回老的值
                 return oldValue;
             }
         }
+        // <4.2>
+        // 增加修改次数
         ++modCount;
+        // 如果超过阀值，则进行扩容
         if (++size > threshold)
             resize();
+        // 添加节点后的回调
         afterNodeInsertion(evict);
+        // 返回 null
         return null;
     }
 
@@ -1194,6 +1229,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         return (e = getNode(key)) == null ? defaultValue : e.value;
     }
 
+    /**
+     * 如果key不存在的时候，就添加key-value键值对到其中
+     * @param key
+     * @param value
+     * @return
+     */
     @Override
     public V putIfAbsent(K key, V value) {
         return putVal(hash(key), key, value, true, true);
